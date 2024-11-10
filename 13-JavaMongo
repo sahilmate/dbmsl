@@ -1,0 +1,85 @@
+import com.mongodb.client.*;
+import com.mongodb.client.model.Filters;
+import org.bson.Document;
+import java.util.Scanner;
+
+public class MongoCRUD {
+
+    public static void main(String[] args) {
+        // Connect to MongoDB
+        try (MongoClient mongoClient = MongoClients.create("mongodb://localhost:27017")) {
+            MongoDatabase database = mongoClient.getDatabase("school");
+            MongoCollection<Document> collection = database.getCollection("Student");
+
+            Scanner scanner = new Scanner(System.in);
+            int choice;
+
+            do {
+                System.out.println("\nChoose an operation:");
+                System.out.println("1. Insert");
+                System.out.println("2. Update");
+                System.out.println("3. Delete");
+                System.out.println("4. Display All");
+                System.out.println("5. Exit");
+                choice = scanner.nextInt();
+                scanner.nextLine(); // Consume newline
+
+                switch (choice) {
+                    case 1:
+                        // Insert Operation
+                        System.out.print("Enter Student Name: ");
+                        String name = scanner.nextLine();
+                        System.out.print("Enter Age: ");
+                        int age = scanner.nextInt();
+                        System.out.print("Enter Grade: ");
+                        String grade = scanner.next();
+
+                        Document student = new Document("name", name)
+                                                .append("age", age)
+                                                .append("grade", grade);
+                        collection.insertOne(student);
+                        System.out.println("Student record inserted successfully.");
+                        break;
+
+                    case 2:
+                        // Update Operation
+                        System.out.print("Enter Student Name to update: ");
+                        String updateName = scanner.nextLine();
+                        System.out.print("Enter new Age: ");
+                        int newAge = scanner.nextInt();
+
+                        collection.updateOne(Filters.eq("name", updateName),
+                                             new Document("$set", new Document("age", newAge)));
+                        System.out.println("Student record updated successfully.");
+                        break;
+
+                    case 3:
+                        // Delete Operation
+                        System.out.print("Enter Student Name to delete: ");
+                        String deleteName = scanner.nextLine();
+
+                        collection.deleteOne(Filters.eq("name", deleteName));
+                        System.out.println("Student record deleted successfully.");
+                        break;
+
+                    case 4:
+                        // Display All Records
+                        System.out.println("Student Collection:");
+                        for (Document doc : collection.find()) {
+                            System.out.println(doc.toJson());
+                        }
+                        break;
+
+                    case 5:
+                        System.out.println("Exiting program.");
+                        break;
+
+                    default:
+                        System.out.println("Invalid choice. Please select again.");
+                }
+            } while (choice != 5);
+
+            scanner.close();
+        }
+    }
+}

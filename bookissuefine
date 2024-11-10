@@ -1,0 +1,117 @@
+CREATE TABLE MEMBERS (
+    mem_id NUMBER PRIMARY KEY,
+    mname VARCHAR2(100),
+    addr VARCHAR2(200),
+    phno VARCHAR2(15)
+);
+
+CREATE TABLE BOOKS (
+    Bno NUMBER PRIMARY KEY,
+    bname VARCHAR2(100),
+    publisher VARCHAR2(100),
+    cost NUMBER(10, 2),
+    DOP DATE,
+    status VARCHAR2(20)
+);
+
+CREATE TABLE ISSUE_RETURN (
+    mem_id NUMBER,
+    Bno NUMBER,
+    issue_date DATE,
+    return_date DATE,
+    fine NUMBER(10, 2),
+    CONSTRAINT FK_MEMBER FOREIGN KEY (mem_id) REFERENCES MEMBERS(mem_id),
+    CONSTRAINT FK_BOOK FOREIGN KEY (Bno) REFERENCES BOOKS(Bno)
+);
+
+CREATE TABLE FINE (
+    roll_no NUMBER,
+    fine_date DATE,
+    amount NUMBER(10, 2)
+);
+
+-- Insert some sample data
+INSERT INTO MEMBERS (mem_id, mname, addr, phno)
+VALUES (1, 'Raju', 'Pune', '1234567890');
+
+INSERT INTO MEMBERS (mem_id, mname, addr, phno)
+VALUES (2, 'Rahul', 'Mumbai', '9876543210');
+
+INSERT INTO BOOKS (Bno, bname, publisher, cost, DOP, status)
+VALUES (24, 'Learn SQL', 'Tech Publisher', 500, TO_DATE('2024-01-01', 'YYYY-MM-DD'), 'Issued');
+
+INSERT INTO BOOKS (Bno, bname, publisher, cost, DOP, status)
+VALUES (25, 'Advanced SQL', 'Tech Publisher', 700, TO_DATE('2024-02-01', 'YYYY-MM-DD'), 'Available');
+
+-- PL/SQL procedure for returning book and calculating fine
+CREATE OR REPLACE PROCEDURE Proc_ReturnBook (
+    mem_id IN NUMBER,
+    Bno IN NUMBER,
+    issue_date IN DATE
+) IS
+    return_date DATE := SYSDATE;
+    fine NUMBER(10, 2) := 0;
+    days_overdue NUMBER;
+    amount NUMBER := 0;
+    book_exists NUMBER;
+BEGIN
+    -- Check if the book exists in the BOOKS table
+    SELECT COUNT(*)
+    INTO book_exists
+    FROM BOOKS
+    WHERE Bno = Bno;
+
+    IF book_exists = 0 THEN
+        DBMS_OUTPUT.put_line('Book number ' || Bno || ' does not exist in the BOOKS table.');
+        RETURN;  -- Exit the procedure
+    END IF;
+
+    -- Calculate overdue days and fine
+    days_overdue := return_date - issue_date;
+
+    IF (days_overdue > 15 AND days_overdue <= 30) THEN
+        amount := (days_overdue - 15) * 5;
+    ELSIF (days_overdue > 30) THEN
+        amount := (15 * 5) + ((days_overdue - 30) * 50);
+    ELSE
+        amount := 0;
+    END IF;
+
+    -- Update book status to 'Available'
+    UPDATE BOOKS
+    SET status = 'Available'
+    WHERE Bno = Bno;
+
+    -- Insert the return details and calculated fine into ISSUE_RETURN
+    INSERT INTO ISSUE_RETURN (mem_id, Bno, issue_date, return_date, fine)
+    VALUES (mem_id, Bno, issue_date, return_date, amount);
+
+    -- Insert fine into the FINE table
+    INSERT INTO FINE (roll_no, fine_date, amount)
+    VALUES (mem_id, return_date, amount);
+
+    COMMIT;
+    DBMS_OUTPUT.put_line('Book returned successfully. Fine: ' || amount);
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        DBMS_OUTPUT.put_line('No data found for the given mem_id or Bno');
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.put_line('An error occurred: ' || SQLERRM);
+END;
+/
+SET SERVEROUTPUT ON;
+
+-- Test the procedure
+DECLARE
+    mem_id NUMBER := &mem_id;  -- Use substitution variable
+    Bno NUMBER := &Bno;        -- Use substitution variable
+    issue_date DATE := TO_DATE('&issue_date', 'YYYY-MM-DD');  -- Use substitution variable
+BEGIN
+    Proc_ReturnBook(mem_id, Bno, issue_date);
+END;
+/
+
+
+
+
+

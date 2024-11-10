@@ -1,0 +1,73 @@
+CREATE TABLE customer_Master (
+    cust_no INT PRIMARY KEY,
+    cust_name VARCHAR2(50),
+    DOB DATE,
+    addr VARCHAR2(100)
+);
+
+CREATE TABLE Customer_Audit (
+    audit_id INT PRIMARY KEY,
+    cust_no INT,
+    operation VARCHAR2(10),
+    old_cust_name VARCHAR2(50),
+    new_cust_name VARCHAR2(50),
+    old_dob DATE,
+    new_dob DATE,
+    old_addr VARCHAR2(100),
+    new_addr VARCHAR2(100)
+);
+
+
+CREATE SEQUENCE customer_Audit_SEQ
+START WITH 1
+INCREMENT BY 1
+NOCACHE;
+
+CREATE OR REPLACE TRIGGER customer_audit_trigger
+AFTER INSERT OR UPDATE OR DELETE
+ON customer_Master
+FOR EACH ROW
+DECLARE
+    operation_type VARCHAR2(10);
+BEGIN
+    IF INSERTING THEN
+        operation_type := 'INSERT';
+        INSERT INTO Customer_Audit (audit_id, cust_no, operation, new_cust_name, new_dob, new_addr)
+        VALUES (customer_Audit_SEQ.NEXTVAL, :NEW.cust_no, operation_type, :NEW.cust_name, :NEW.DOB, :NEW.addr);
+        
+    ELSIF UPDATING THEN
+        operation_type := 'UPDATE';
+        INSERT INTO Customer_Audit (audit_id, cust_no, operation, old_cust_name, new_cust_name, old_dob, new_dob, old_addr, new_addr)
+        VALUES (customer_Audit_SEQ.NEXTVAL, :NEW.cust_no, operation_type, :OLD.cust_name, :NEW.cust_name, :OLD.DOB, :NEW.DOB, :OLD.addr, :NEW.addr);
+        
+    ELSIF DELETING THEN
+        operation_type := 'DELETE';
+        INSERT INTO Customer_Audit (audit_id, cust_no, operation, old_cust_name, old_dob, old_addr)
+        VALUES (customer_Audit_SEQ.NEXTVAL, :OLD.cust_no, operation_type, :OLD.cust_name, :OLD.DOB, :OLD.addr);
+    END IF;
+END;
+/
+
+-- Insert 3 records into the customer_Master table
+INSERT INTO customer_Master (cust_no, cust_name, DOB, addr)
+VALUES (1, 'John Doe', TO_DATE('1980-01-01', 'YYYY-MM-DD'), '123 Main St');
+
+INSERT INTO customer_Master (cust_no, cust_name, DOB, addr)
+VALUES (2, 'Jane Smith', TO_DATE('1990-05-10', 'YYYY-MM-DD'), '456 Elm St');
+
+INSERT INTO customer_Master (cust_no, cust_name, DOB, addr)
+VALUES (3, 'Jim Brown', TO_DATE('1985-09-15', 'YYYY-MM-DD'), '789 Pine St');
+
+
+--Test:
+INSERT INTO customer_Master (cust_no, cust_name, DOB, addr)
+VALUES (4, 'Sara White', TO_DATE('1992-07-20', 'YYYY-MM-DD'), '101 Maple Ave');
+
+
+UPDATE customer_Master
+SET cust_name = 'John D.', DOB = TO_DATE('1981-01-01', 'YYYY-MM-DD'), addr = '123 Oak St'
+WHERE cust_no = 1;
+
+
+DELETE FROM customer_Master
+WHERE cust_no = 2;

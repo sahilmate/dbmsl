@@ -1,0 +1,34 @@
+db.createCollection("customer");
+db.customer.insertMany([
+  {name:"AAA",email_id:"aaa@gmail.com",profession:"Engineer",gender:"female",bill_amount:23000},
+  {name:"BBB",email_id:"bbb@gmail.com",profession:"Business",gender:"female",bill_amount:2300},
+  {name:"CCC",email_id:"ccc@gmail.com",profession:"Engineer",gender:"male",bill_amount:3000},
+  {name:"DDD",email_id:"ddd@gmail.com",profession:"Doctor",gender:"female",bill_amount:1500},
+  {name:"EEE",email_id:"eee@gmail.com",profession:"Business",gender:"male",bill_amount:8000},
+  {name:"FFF",email_id:"fff@gmail.com",profession:"Housewife",gender:"female",bill_amount:1300},
+  {name:"GGG",email_id:"ggg@gmail.com",profession:"Teacher",gender:"male",bill_amount:6000},
+  {name:"HHH",email_id:"hhh@gmail.com",profession:"Artist",gender:"female",bill_amount:7000},
+  ]);
+  
+var map= function(){emit(this.gender,1)};
+var reduce=function(key,values){
+  return Array.sum(values);
+};
+db.customer.mapReduce(
+  map,
+  reduce,
+  {out:{inline:1}});
+  
+var map = function(){emit(this.bill_amount,1)};
+var reduce=function(key,values){
+  return Array.sum(values);
+};
+db.customer.mapReduce(map,reduce,{out:{inline:1}});
+
+db.customer.find({bill_amount:{$gt:5000}});
+db.customer.updateOne({name:"HHH"},{$set:{bill_amount:4000}});
+db.customer.find({name:{$regex :"^B"}});
+db.customer.find({profession:"Business"});
+db.customer.find().sort({bill_amount:-1});
+db.customer.createIndex({name:1});
+db.customer.find({name:"AAA"}).explain();

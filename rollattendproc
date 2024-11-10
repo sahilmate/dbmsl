@@ -1,0 +1,54 @@
+CREATE TABLE Student (
+    Roll NUMBER PRIMARY KEY,
+    Name VARCHAR2(50),
+    Attendance NUMBER(3,1), -- Stores attendance as a percentage, e.g., 75.5
+    Status VARCHAR2(20)
+);
+
+INSERT INTO Student (Roll, Name, Attendance, Status) VALUES (1, 'Akash', 80, NULL);
+INSERT INTO Student (Roll, Name, Attendance, Status) VALUES (2, 'Riya', 70, NULL);
+INSERT INTO Student (Roll, Name, Attendance, Status) VALUES (3, 'Mohan', 85, NULL);
+INSERT INTO Student (Roll, Name, Attendance, Status) VALUES (4, 'Sana', 65, NULL);
+INSERT INTO Student (Roll, Name, Attendance, Status) VALUES (5, 'Nikhil', 90, NULL);
+
+COMMIT;
+
+CREATE OR REPLACE FUNCTION check_attendance_status (attendance_percentage NUMBER)
+RETURN VARCHAR2 IS
+result VARCHAR2(50);
+BEGIN
+IF attendance_percentage < 75 THEN
+result := 'Term not granted';
+ELSE
+result := 'Term granted';
+END IF;
+RETURN result;
+END;
+/
+SET SERVEROUTPUT ON;
+DECLARE
+roll_num NUMBER;
+attendance_percentage NUMBER;
+status_message VARCHAR2(50);
+BEGIN
+roll_num := &roll_num;
+attendance_percentage := &attendance_percentage;
+status_message := check_attendance_status(attendance_percentage);
+DBMS_OUTPUT.put_line('Status Message: ' || status_message);
+IF status_message = 'Term not granted' THEN
+UPDATE Student
+SET Status = 'Detained'
+WHERE Roll = roll_num;
+ELSE
+UPDATE Student
+SET Status = 'Not Detained'
+WHERE Roll = roll_num;
+END IF;
+COMMIT;
+EXCEPTION
+WHEN NO_DATA_FOUND THEN
+DBMS_OUTPUT.put_line('Student not found for the given roll number');
+WHEN OTHERS THEN
+DBMS_OUTPUT.put_line('An error occurred: ' || SQLERRM);
+END;
+/

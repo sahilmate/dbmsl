@@ -1,0 +1,63 @@
+-- Create the Emp table
+CREATE TABLE Emp (
+    Emp_no INT PRIMARY KEY,
+    Emp_name VARCHAR2(50),
+    Emp_salary NUMBER
+);
+
+-- Create the Tracking table
+CREATE TABLE Tracking (
+    Emp_no INT,
+    Emp_salary NUMBER
+);
+
+-- Create the trigger to track salary changes
+CREATE OR REPLACE TRIGGER emp_salary_trigger
+AFTER INSERT OR UPDATE OR DELETE
+ON Emp
+FOR EACH ROW
+BEGIN
+    -- Trigger for INSERT operation
+    IF INSERTING AND :NEW.Emp_salary < 50000 THEN
+        INSERT INTO Tracking (Emp_no, Emp_salary)
+        VALUES (:NEW.Emp_no, :NEW.Emp_salary);
+    END IF;
+
+    -- Trigger for UPDATE operation
+    IF UPDATING AND :NEW.Emp_salary < 50000 THEN
+        INSERT INTO Tracking (Emp_no, Emp_salary)
+        VALUES (:NEW.Emp_no, :NEW.Emp_salary);
+    END IF;
+
+    -- Trigger for DELETE operation
+    IF DELETING THEN
+        INSERT INTO Tracking (Emp_no, Emp_salary)
+        VALUES (:OLD.Emp_no, :OLD.Emp_salary);
+    END IF;
+END;
+/
+
+-- Insert sample data into Emp
+INSERT INTO Emp (Emp_no, Emp_name, Emp_salary) 
+VALUES (1, 'John Doe', 45000);
+
+INSERT INTO Emp (Emp_no, Emp_name, Emp_salary) 
+VALUES (2, 'Jane Smith', 55000);
+
+-- Update salary below Rs. 50,000
+UPDATE Emp 
+SET Emp_salary = 48000 
+WHERE Emp_no = 1;
+
+-- Update salary above Rs. 50,000
+UPDATE Emp 
+SET Emp_salary = 60000 
+WHERE Emp_no = 2;
+
+-- Delete a record
+DELETE FROM Emp 
+WHERE Emp_no = 1;
+
+-- Check Tracking table to verify results
+SELECT * FROM Tracking;
+SELECT * FROM EMP;

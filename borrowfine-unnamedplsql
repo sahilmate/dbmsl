@@ -1,0 +1,94 @@
+-- Create the borrower table
+CREATE TABLE borrower (
+    roll_no NUMBER PRIMARY KEY,
+    name VARCHAR2(50),
+    date_of_issue DATE,
+    name_of_book VARCHAR2(50),
+    status CHAR(1)
+);
+
+-- Create the fine table
+CREATE TABLE fine (
+    roll_no NUMBER,
+    fine_date DATE,
+    amount_fine NUMBER,
+    FOREIGN KEY (roll_no) REFERENCES borrower(roll_no)
+);
+
+-- Insert sample records into borrower table
+INSERT INTO borrower (roll_no, name, date_of_issue, name_of_book, status)
+VALUES (1, 'Rahul', TO_DATE('20-10-2024', 'DD-MM-YYYY'), 'dbms', 'I');
+
+INSERT INTO borrower (roll_no, name, date_of_issue, name_of_book, status)
+VALUES (2, 'Priya', TO_DATE('15-10-2024', 'DD-MM-YYYY'), 'os', 'I');
+
+INSERT INTO borrower (roll_no, name, date_of_issue, name_of_book, status)
+VALUES (3, 'Amit', TO_DATE('07-10-2024', 'DD-MM-YYYY'), 'iot', 'I');
+
+INSERT INTO borrower (roll_no, name, date_of_issue, name_of_book, status)
+VALUES (4, 'Sneha', TO_DATE('07-10-2024', 'DD-MM-YYYY'), 'hci', 'I');
+
+COMMIT;
+
+CREATE OR REPLACE FUNCTION calfine(days NUMBER) 
+RETURN NUMBER 
+IS 
+    amount NUMBER := 0; 
+BEGIN 
+    IF (days > 15 AND days < 30) THEN 
+        amount := days * 5; 
+    ELSIF (days > 30) THEN 
+        amount := days * 50; 
+    ELSE 
+        amount := 0; 
+    END IF; 
+    RETURN amount; 
+END; 
+/ 
+
+SET SERVEROUTPUT ON;
+
+DECLARE 
+    roll_num   NUMBER(3); 
+    book_name  VARCHAR2(20); 
+    nm         VARCHAR2(25); 
+    s          VARCHAR2(10); 
+    d_issue    DATE; 
+    days       NUMBER(4); 
+    amt        NUMBER(17); 
+BEGIN 
+    roll_num := &roll_num; 
+    book_name := '&book_name';
+
+    SELECT roll_no, name, name_of_book, status, date_of_issue 
+    INTO roll_num, nm, book_name, s, d_issue 
+    FROM borrower 
+    WHERE roll_no = roll_num;
+
+    days := SYSDATE - d_issue;
+
+    DBMS_OUTPUT.put_line('Roll no = ' || roll_num); 
+    DBMS_OUTPUT.put_line('Name = ' || nm); 
+    DBMS_OUTPUT.put_line('Book name = ' || book_name); 
+    DBMS_OUTPUT.put_line('Status = ' || s); 
+    DBMS_OUTPUT.put_line('Days are ' || days);
+
+    amt := calfine(days); 
+    DBMS_OUTPUT.put_line('Fine amount is ' || amt);
+
+    IF amt > 0 THEN 
+        INSERT INTO fine VALUES (roll_num, SYSDATE, amt); 
+        DBMS_OUTPUT.put_line('One row inserted');
+    END IF;
+
+    UPDATE borrower 
+    SET status = 'R' 
+    WHERE roll_no = roll_num; 
+
+EXCEPTION 
+    WHEN NO_DATA_FOUND THEN 
+        DBMS_OUTPUT.put_line('Record not found'); 
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.put_line('An error occurred: ' || SQLERRM);
+END;
+/

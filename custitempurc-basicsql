@@ -1,0 +1,120 @@
+-- Step 1: Create the CUSTOMERS table
+CREATE TABLE CUSTOMERS (
+    CNo NUMBER PRIMARY KEY, 
+    Cname VARCHAR2(100),
+    Ccity VARCHAR2(50),
+    CMobile VARCHAR2(15)
+);
+
+-- Step 2: Create the ITEMS table
+CREATE TABLE ITEMS (
+    INo NUMBER PRIMARY KEY, 
+    Iname VARCHAR2(100),
+    Itype VARCHAR2(50),
+    Iprice NUMBER(10, 2),
+    Icount NUMBER
+);
+
+-- Step 3: Create the PURCHASE table
+CREATE TABLE PURCHASE (
+    PNo NUMBER PRIMARY KEY,
+    Pdate DATE,
+    Pquantity NUMBER,
+    CNo NUMBER,
+    INo NUMBER,
+    FOREIGN KEY (CNo) REFERENCES CUSTOMERS(CNo),
+    FOREIGN KEY (INo) REFERENCES ITEMS(INo)
+);
+
+-- Step 4: Create Sequences for Auto-Increment functionality
+-- Sequence for CNo (CUSTOMERS table)
+CREATE SEQUENCE CNO_SEQ START WITH 1 INCREMENT BY 1;
+
+-- Sequence for INo (ITEMS table)
+CREATE SEQUENCE INO_SEQ START WITH 1 INCREMENT BY 1;
+
+-- Sequence for PNo (PURCHASE table)
+CREATE SEQUENCE PNO_SEQ START WITH 1 INCREMENT BY 1;
+
+-- Step 5: Insert Sample Data into CUSTOMERS Table
+INSERT INTO CUSTOMERS (CNo, Cname, Ccity, CMobile) 
+VALUES (CNO_SEQ.NEXTVAL, 'Gopal', 'Pune', '9876543210');
+
+INSERT INTO CUSTOMERS (CNo, Cname, Ccity, CMobile) 
+VALUES (CNO_SEQ.NEXTVAL, 'Maya', 'Mumbai', '9876543209');
+
+-- Step 6: Insert Sample Data into ITEMS Table
+INSERT INTO ITEMS (INo, Iname, Itype, Iprice, Icount) 
+VALUES (INO_SEQ.NEXTVAL, 'Notebook', 'Stationary', 500, 10);
+
+INSERT INTO ITEMS (INo, Iname, Itype, Iprice, Icount) 
+VALUES (INO_SEQ.NEXTVAL, 'Pen', 'Stationary', 50, 100);
+
+INSERT INTO ITEMS (INo, Iname, Itype, Iprice, Icount) 
+VALUES (INO_SEQ.NEXTVAL, 'Marker', 'Stationary', 300, 50);
+
+INSERT INTO ITEMS (INo, Iname, Itype, Iprice, Icount) 
+VALUES (INO_SEQ.NEXTVAL, 'Whiteboard', 'Stationary', 1200, 20);
+
+-- Step 7: Insert Sample Data into PURCHASE Table
+INSERT INTO PURCHASE (PNo, Pdate, Pquantity, CNo, INo) 
+VALUES (PNO_SEQ.NEXTVAL, TO_DATE('2023-12-01', 'YYYY-MM-DD'), 5, 1, 1);
+
+INSERT INTO PURCHASE (PNo, Pdate, Pquantity, CNo, INo) 
+VALUES (PNO_SEQ.NEXTVAL, TO_DATE('2023-12-05', 'YYYY-MM-DD'), 2, 2, 4);
+
+INSERT INTO PURCHASE (PNo, Pdate, Pquantity, CNo, INo) 
+VALUES (PNO_SEQ.NEXTVAL, TO_DATE('2023-12-10', 'YYYY-MM-DD'), 10, 2, 2);
+
+-- Step 8: Solve the Queries
+
+-- 1. List all stationary items with price between 400/- to 1000/-
+SELECT Iname, Iprice 
+FROM ITEMS 
+WHERE Itype = 'Stationary' 
+AND Iprice BETWEEN 400 AND 1000;
+
+-- 2. Change the mobile number of customer "Gopal"
+UPDATE CUSTOMERS 
+SET CMobile = '1234567890' 
+WHERE Cname = 'Gopal';
+
+-- 3. Display the item with maximum price
+SELECT Iname, Iprice
+FROM (
+    SELECT Iname, Iprice
+    FROM ITEMS
+    WHERE Itype = 'Stationary'
+    ORDER BY Iprice DESC
+)
+WHERE ROWNUM = 1;
+
+
+-- 4. Display all purchases sorted from the most recent to the oldest
+SELECT PNo, Pdate, Pquantity, CNo, INo 
+FROM PURCHASE 
+ORDER BY Pdate DESC;
+
+-- 5. Count the number of customers in every city
+SELECT Ccity, COUNT(*) AS CustomerCount 
+FROM CUSTOMERS 
+GROUP BY Ccity;
+
+-- 6. Display all purchased quantity of Customer "Maya"
+SELECT Pdate, Pquantity, Iname 
+FROM PURCHASE 
+JOIN ITEMS ON PURCHASE.INo = ITEMS.INo
+JOIN CUSTOMERS ON PURCHASE.CNo = CUSTOMERS.CNo
+WHERE CUSTOMERS.Cname = 'Maya';
+
+-- 7. Display list of customers whose name ends with 'a'
+SELECT Cname 
+FROM CUSTOMERS 
+WHERE Cname LIKE '%a';
+
+-- 8. Create a view which shows Iname, Price, and Count of all stationary items in descending order of price
+CREATE VIEW StationaryItemsView AS
+SELECT Iname, Iprice, Icount
+FROM ITEMS
+WHERE Itype = 'Stationary'
+ORDER BY Iprice DESC;

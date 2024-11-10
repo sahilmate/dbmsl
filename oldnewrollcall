@@ -1,0 +1,42 @@
+-- Creating Old_RollCall table
+CREATE TABLE Old_RollCall (
+    Rno INT PRIMARY KEY,
+    Name VARCHAR2(50),
+    Address VARCHAR2(100)
+);
+
+-- Creating New_RollCall table
+CREATE TABLE New_RollCall (
+    Rno INT PRIMARY KEY,
+    Name VARCHAR2(50),
+    Address VARCHAR2(100)
+);
+
+
+-- Procedure to copy records from Old_RollCall to New_RollCall
+CREATE OR REPLACE PROCEDURE Copy_New_Roll_Call AS
+BEGIN
+    FOR a IN (SELECT Rno, Name, Address 
+              FROM Old_RollCall 
+              WHERE Rno NOT IN (SELECT Rno FROM New_RollCall)) 
+    LOOP
+        INSERT INTO New_RollCall (Rno, Name, Address)
+        VALUES (a.Rno, a.Name, a.Address);
+    END LOOP;
+
+    DBMS_OUTPUT.PUT_LINE('Values copied');
+    COMMIT;
+END;
+/
+
+INSERT INTO Old_RollCall (Rno, Name, Address) 
+VALUES (1, 'John Doe', '123 Elm St');
+
+INSERT INTO Old_RollCall (Rno, Name, Address) 
+VALUES (2, 'Jane Smith', '456 Oak St');
+
+-- Execute the procedure to copy data
+EXEC Copy_New_Roll_Call;
+
+-- View the data from the New_RollCall table
+SELECT * FROM New_RollCall;

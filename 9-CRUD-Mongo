@@ -1,0 +1,64 @@
+db.createCollection("Employee");
+db.Employee.insertMany([
+    { Emp_id: "E1001", Emp_Name: "John", Emp_salary: 60000, Emp_Dept: "HR" },
+    { Emp_id: "E1002", Emp_Name: "Smith", Emp_salary: 45000, Emp_Dept: "Marketing" },
+    { Emp_id: "E1003", Emp_Name: "Emily", Emp_salary: 55000, Emp_Dept: "IT" },
+    { Emp_id: "E1004", Emp_Name: "Jake", Emp_salary: 40000, Emp_Dept: "Marketing" },
+    { Emp_id: "E1005", Emp_Name: "Anna", Emp_salary: 75000, Emp_Dept: "Finance" },
+    { Emp_id: "E1006", Emp_Name: "Bob", Emp_salary: 35000, Emp_Dept: "IT" },
+    { Emp_id: "E1007", Emp_Name: "Charlie", Emp_salary: 70000, Emp_Dept: "HR" },
+    { Emp_id: "E1008", Emp_Name: "David", Emp_salary: 80000, Emp_Dept: "Finance" },
+    { Emp_id: "E1009", Emp_Name: "Lisa", Emp_salary: 30000, Emp_Dept: "Marketing" },
+    { Emp_id: "E1010", Emp_Name: "Tom", Emp_salary: 65000, Emp_Dept: "IT" }
+]);
+
+//Find employees whose salary is greater than 50000 Rs
+db.Employee.find({ Emp_salary: { $gt: 50000 } });
+
+// Increase the salary of Smith by 5000 Rs
+db.Employee.updateOne(
+    { Emp_Name: "Smith" },
+    { $inc: { Emp_salary: 5000 } }
+);
+
+//Display the information of employees working in the "Marketing" department with a salary less than 45000
+db.Employee.find({ Emp_Dept: "Marketing", Emp_salary: { $lt: 45000 } });
+
+//Display the first five highest paid employees
+db.Employee.find().sort({ Emp_salary: -1 }).limit(5);
+
+//Delete the employee with Id E1007
+db.Employee.deleteOne({ Emp_id: "E1007" });
+
+
+// Create an Index on the Emp_id field
+ db.Employee.createIndex({ Emp_id: 1 });
+
+//Compare the time required to search Emp_id = E10008 before and after creating an index
+//before
+var start = new Date();
+db.Employee.find({ Emp_id: "E10008" }).toArray();
+var end = new Date();
+print("Time taken before creating index: " + (end - start) + " ms");
+
+//after index creation
+var start = new Date();
+db.Employee.find({ Emp_id: "E10008" }).toArray();
+var end = new Date();
+print("Time taken after creating index: " + (end - start) + " ms");
+
+//Adding at least 10,000 Documents to observe the effect of the index on performance
+// Inserting 10,000 documents for testing purposes
+for (let i = 0; i < 10000; i++) {
+    db.Employee.insertOne({
+        Emp_id: "E" + (i + 1010),
+        Emp_Name: "Employee" + (i + 1010),
+        Emp_salary: Math.floor(Math.random() * 50000) + 20000, // Random salary between 20,000 to 70,000
+        Emp_Dept: i % 2 == 0 ? "HR" : "IT"
+    });
+}
+
+
+ 
+
+

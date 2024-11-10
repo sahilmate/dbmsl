@@ -1,0 +1,48 @@
+// 1. Create the student collection and insert sample data
+db.student.insertMany([
+    { RollNo: 1, name: "Alice", class: "TE Comp A", marks: 85, sports: ["football", "basketball"] },
+    { RollNo: 2, name: "Bob", class: "TE Comp B", marks: 78, sports: ["cricket"] },
+    { RollNo: 3, name: "Charlie", class: "TE Comp A", marks: 92, sports: ["football"] },
+    { RollNo: 4, name: "David", class: "TE Comp B", marks: 88, sports: [] },
+    { RollNo: 5, name: "Eve", class: "TE Comp A", marks: 67, sports: ["tennis"] },
+    { RollNo: 6, name: "Frank", class: "TE Comp A", marks: 45, sports: ["football"] },
+    { RollNo: 7, name: "Grace", class: "TE Comp B", marks: 55, sports: ["football"] },
+    { RollNo: 8, name: "Heidi", class: "TE Comp C", marks: 95, sports: [] },
+    { RollNo: 9, name: "Ivan", class: "TE Comp C", marks: 81, sports: ["basketball"] },
+    { RollNo: 10, name: "Judy", class: "TE Comp A", marks: 72, sports: ["football"] }
+]);
+
+// 2. Create an index on the name field
+db.student.createIndex({ name: 1 });
+
+// Use explain() function to see execution stats for finding a student by name
+db.student.find({ name: "Alice" }).explain("executionStats");
+
+// 3. Display the first 5 toppers of TE
+db.student.aggregate([
+    { $match: { class: { $regex: /^TE/ } } },
+    { $sort: { marks: -1 } },
+    { $limit: 5 }
+]);
+
+// 4. Display marks of topper of each division
+db.student.aggregate([
+    { $group: { _id: "$class", maxMarks: { $max: "$marks" } } }
+]);
+
+// 5. Display the average marks of each division
+db.student.aggregate([
+    { $group: { _id: "$class", averageMarks: { $avg: "$marks" } } }
+]);
+
+// 6. Display the rollcall of TEComp A
+db.student.find({ class: "TE Comp A" }, { RollNo: 1, name: 1 }).sort({ RollNo: 1 });
+
+// 7. Display list of fail students from TE Comp A
+db.student.find({ class: "TE Comp A", marks: { $lt: 50 } });
+
+// 8. Display Name, Class and Marks of all students
+db.student.find({}, { name: 1, class: 1, marks: 1 });
+
+// 9. Display list of students who play football
+db.student.find({ sports: "football" }, { name: 1, class: 1, sports: 1 });

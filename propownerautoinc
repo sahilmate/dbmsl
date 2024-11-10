@@ -1,0 +1,101 @@
+CREATE TABLE OWNERS (
+    OwnerNo INT PRIMARY KEY,
+    OwnerName VARCHAR2(50),
+    Phno VARCHAR2(15)
+);
+
+CREATE TABLE PROPERTIES (
+    Pno INT PRIMARY KEY,
+    Type VARCHAR2(20),
+    Sq_Ft_Area INT,
+    Rent DECIMAL(10, 2),
+    Address VARCHAR2(100),
+    Status VARCHAR2(20),
+    OwnerNo INT,
+    CONSTRAINT fk_owner FOREIGN KEY (OwnerNo) REFERENCES OWNERS(OwnerNo)
+);
+
+-- Create a sequence for OwnerNo and Pno
+CREATE SEQUENCE seq_owner_no START WITH 1 INCREMENT BY 1;
+CREATE SEQUENCE seq_pno START WITH 1 INCREMENT BY 1;
+
+-- Create a trigger to auto-generate OwnerNo for the OWNERS table
+CREATE OR REPLACE TRIGGER trg_owner_no
+    BEFORE INSERT ON OWNERS
+    FOR EACH ROW
+BEGIN
+    :new.OwnerNo := seq_owner_no.NEXTVAL;
+END;
+
+-- Create a trigger to auto-generate Pno for the PROPERTIES table
+CREATE OR REPLACE TRIGGER trg_pno
+    BEFORE INSERT ON PROPERTIES
+    FOR EACH ROW
+BEGIN
+    :new.Pno := seq_pno.NEXTVAL;
+END;
+
+-- Insert data into OWNERS table
+INSERT INTO OWNERS (OwnerName, Phno) VALUES ('Gopal', '9876543210');
+INSERT INTO OWNERS (OwnerName, Phno) VALUES ('Ramesh', '9876543211');
+INSERT INTO OWNERS (OwnerName, Phno) VALUES ('Suresh', '9876543212');
+INSERT INTO OWNERS (OwnerName, Phno) VALUES ('John', '9876543213');
+INSERT INTO OWNERS (OwnerName, Phno) VALUES ('Rajesh', '9876543214');
+
+-- Insert data into PROPERTIES table
+INSERT INTO PROPERTIES (Type, Sq_Ft_Area, Rent, Address, Status, OwnerNo) VALUES ('1BHK', 500, 10000, 'Kothrud', 'Not Rented', 1);
+INSERT INTO PROPERTIES (Type, Sq_Ft_Area, Rent, Address, Status, OwnerNo) VALUES ('2BHK', 800, 20000, 'Kothrud', 'Rented', 1);
+INSERT INTO PROPERTIES (Type, Sq_Ft_Area, Rent, Address, Status, OwnerNo) VALUES ('3BHK', 1200, 30000, 'Kothrud', 'Not Rented', 2);
+INSERT INTO PROPERTIES (Type, Sq_Ft_Area, Rent, Address, Status, OwnerNo) VALUES ('1BHK', 600, 15000, 'Kothrud', 'Not Rented', 3);
+INSERT INTO PROPERTIES (Type, Sq_Ft_Area, Rent, Address, Status, OwnerNo) VALUES ('2BHK', 900, 18000, 'Kothrud', 'Rented', 4);
+INSERT INTO PROPERTIES (Type, Sq_Ft_Area, Rent, Address, Status, OwnerNo) VALUES ('3BHK', 1300, 35000, 'Kothrud', 'Not Rented', 5);
+INSERT INTO PROPERTIES (Type, Sq_Ft_Area, Rent, Address, Status, OwnerNo) VALUES ('1BHK', 450, 9000, 'Pune', 'Not Rented', 2);
+INSERT INTO PROPERTIES (Type, Sq_Ft_Area, Rent, Address, Status, OwnerNo) VALUES ('2BHK', 700, 17000, 'Kothrud', 'Not Rented', 3);
+INSERT INTO PROPERTIES (Type, Sq_Ft_Area, Rent, Address, Status, OwnerNo) VALUES ('1BHK', 500, 12000, 'Kothrud', 'Rented', 4);
+INSERT INTO PROPERTIES (Type, Sq_Ft_Area, Rent, Address, Status, OwnerNo) VALUES ('3BHK', 1100, 25000, 'Pune', 'Rented', 5);
+
+-- 1. Display all 1BHK apartments in Kothrud which are not rented
+SELECT * 
+FROM PROPERTIES 
+WHERE Type = '1BHK' AND Address = 'Kothrud' AND Status = 'Not Rented';
+
+-- 2. Display all properties owned by "Gopal"
+SELECT p.* 
+FROM PROPERTIES p
+JOIN OWNERS o ON p.OwnerNo = o.OwnerNo
+WHERE o.OwnerName = 'Gopal';
+
+-- 3. Write a query to display the smallest property of each owner
+SELECT p.OwnerNo, p.Pno, p.Type, p.Sq_Ft_Area, p.Rent, p.Address
+FROM PROPERTIES p
+WHERE (p.Sq_Ft_Area, p.OwnerNo) IN (
+    SELECT MIN(Sq_Ft_Area), OwnerNo
+    FROM PROPERTIES
+    GROUP BY OwnerNo
+);
+
+-- 4. Display all properties in Kothrud in Descending order of rent
+SELECT * 
+FROM PROPERTIES 
+WHERE Address = 'Kothrud' 
+ORDER BY Rent DESC;
+
+-- 5. Create a view which shows OwnerName along with his Pno, type, Address, and Rent
+CREATE VIEW Owner_Property_View AS
+SELECT o.OwnerName, p.Pno, p.Type, p.Address, p.Rent
+FROM PROPERTIES p
+JOIN OWNERS o ON p.OwnerNo = o.OwnerNo;
+
+-- 6. Display the names of all Owners whose name has "ee"
+SELECT OwnerName 
+FROM OWNERS 
+WHERE OwnerName LIKE '%ee%';
+
+-- 7. Display Pno, Type, Address, Rent, and Status of all properties with rent greater than 15000/- and less than 22000/-
+SELECT Pno, Type, Address, Rent, Status 
+FROM PROPERTIES 
+WHERE Rent > 15000 AND Rent < 22000;
+
+-- 8. Display different property types registered with the real estate agency
+SELECT DISTINCT Type 
+FROM PROPERTIES;

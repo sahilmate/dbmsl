@@ -1,0 +1,165 @@
+-- Create PROPERTIES table
+CREATE TABLE PROPERTIES (
+    Pno INT PRIMARY KEY, 
+    Type VARCHAR(50),
+    Sq_Ft_Area INT,
+    Rent DECIMAL(10, 2),
+    Address VARCHAR(100),
+    Status VARCHAR(20),
+    OwnerNo INT
+);
+
+-- Create CLIENTS table
+CREATE TABLE CLIENTS (
+    ClientNo INT PRIMARY KEY, 
+    ClientName VARCHAR(100),
+    Phno VARCHAR(15),
+    Requirement VARCHAR(100)
+);
+
+-- Create RENTAL table
+CREATE TABLE RENTAL (
+    Pno INT,
+    ClientNo INT,
+    FromDate DATE,
+    ToDate DATE,
+    PRIMARY KEY (Pno, ClientNo),
+    FOREIGN KEY (Pno) REFERENCES PROPERTIES(Pno),
+    FOREIGN KEY (ClientNo) REFERENCES CLIENTS(ClientNo)
+);
+
+CREATE SEQUENCE properties_seq
+START WITH 1
+INCREMENT BY 1
+NOCACHE;
+
+CREATE OR REPLACE TRIGGER properties_before_insert
+BEFORE INSERT ON PROPERTIES
+FOR EACH ROW
+BEGIN
+  :NEW.Pno := properties_seq.NEXTVAL;
+END;
+
+CREATE SEQUENCE clients_seq
+START WITH 1
+INCREMENT BY 1
+NOCACHE;
+
+CREATE OR REPLACE TRIGGER clients_before_insert
+BEFORE INSERT ON CLIENTS
+FOR EACH ROW
+BEGIN
+  :NEW.ClientNo := clients_seq.NEXTVAL;
+END;
+
+  
+-- Insert data into PROPERTIES table
+INSERT INTO PROPERTIES (Type, Sq_Ft_Area, Rent, Address, Status, OwnerNo)
+VALUES ('1BHK', 500, 10000, 'Kothrud', 'Not Rented', 1);
+
+INSERT INTO PROPERTIES (Type, Sq_Ft_Area, Rent, Address, Status, OwnerNo)
+VALUES ('2BHK', 800, 20000, 'Kothrud', 'Rented', 1);
+
+INSERT INTO PROPERTIES (Type, Sq_Ft_Area, Rent, Address, Status, OwnerNo)
+VALUES ('3BHK', 1200, 30000, 'Kothrud', 'Not Rented', 2);
+
+INSERT INTO PROPERTIES (Type, Sq_Ft_Area, Rent, Address, Status, OwnerNo)
+VALUES ('1BHK', 600, 15000, 'Kothrud', 'Not Rented', 3);
+
+INSERT INTO PROPERTIES (Type, Sq_Ft_Area, Rent, Address, Status, OwnerNo)
+VALUES ('2BHK', 900, 18000, 'Kothrud', 'Rented', 4);
+
+INSERT INTO PROPERTIES (Type, Sq_Ft_Area, Rent, Address, Status, OwnerNo)
+VALUES ('3BHK', 1300, 35000, 'Kothrud', 'Not Rented', 5);
+
+INSERT INTO PROPERTIES (Type, Sq_Ft_Area, Rent, Address, Status, OwnerNo)
+VALUES ('1BHK', 450, 9000, 'Pune', 'Not Rented', 2);
+
+INSERT INTO PROPERTIES (Type, Sq_Ft_Area, Rent, Address, Status, OwnerNo)
+VALUES ('2BHK', 700, 17000, 'Kothrud', 'Not Rented', 3);
+
+INSERT INTO PROPERTIES (Type, Sq_Ft_Area, Rent, Address, Status, OwnerNo)
+VALUES ('1BHK', 500, 12000, 'Kothrud', 'Rented', 4);
+
+INSERT INTO PROPERTIES (Type, Sq_Ft_Area, Rent, Address, Status, OwnerNo)
+VALUES ('3BHK', 1100, 25000, 'Pune', 'Rented', 5);
+
+-- Insert data into CLIENTS table
+INSERT INTO CLIENTS (ClientName, Phno, Requirement)
+VALUES ('Gopal', '9876543210', '2BHK');
+
+INSERT INTO CLIENTS (ClientName, Phno, Requirement)
+VALUES ('Ramesh', '9876543211', '1BHK');
+
+INSERT INTO CLIENTS (ClientName, Phno, Requirement)
+VALUES ('Suresh', '9876543212', '3BHK');
+
+INSERT INTO CLIENTS (ClientName, Phno, Requirement)
+VALUES ('John', '9876543213', '2BHK');
+
+INSERT INTO CLIENTS (ClientName, Phno, Requirement)
+VALUES ('Rajesh', '9876543214', '3BHK');
+
+SELECT PNo FROM PROPERTIES; 
+
+-- Insert data into RENTAL table and take pno of properties and client number check as well
+INSERT INTO RENTAL (Pno, ClientNo, FromDate, ToDate)
+VALUES (11, 1, TO_DATE('2017-11-01', 'YYYY-MM-DD'), TO_DATE('2018-11-01', 'YYYY-MM-DD'));
+
+INSERT INTO RENTAL (Pno, ClientNo, FromDate, ToDate)
+VALUES (12, 2, TO_DATE('2017-10-01', 'YYYY-MM-DD'), TO_DATE('2018-10-01', 'YYYY-MM-DD'));
+
+INSERT INTO RENTAL (Pno, ClientNo, FromDate, ToDate)
+VALUES (13, 3, TO_DATE('2017-12-01', 'YYYY-MM-DD'), TO_DATE('2018-12-01', 'YYYY-MM-DD'));
+
+INSERT INTO RENTAL (Pno, ClientNo, FromDate, ToDate)
+VALUES (9, 4, TO_DATE('2017-09-01', 'YYYY-MM-DD'), TO_DATE('2018-09-01', 'YYYY-MM-DD'));
+
+INSERT INTO RENTAL (Pno, ClientNo, FromDate, ToDate)
+VALUES (10, 5, TO_DATE('2017-10-01', 'YYYY-MM-DD'), TO_DATE('2018-10-01', 'YYYY-MM-DD'));
+
+-- Queries
+-- Query 1: List all available properties
+SELECT * 
+FROM PROPERTIES 
+WHERE Status = 'Not Rented';
+
+-- Query 2: List properties available in December 2017
+SELECT P.Pno, P.Type, P.Sq_Ft_Area, P.Rent, P.Address, P.Status
+FROM PROPERTIES P
+JOIN RENTAL R ON P.Pno = R.Pno
+WHERE R.FromDate <= TO_DATE('2017-12-01', 'YYYY-MM-DD') 
+AND R.ToDate >= TO_DATE('2017-12-01', 'YYYY-MM-DD');
+
+-- Query 3: Count the number of properties area-wise
+SELECT Sq_Ft_Area, COUNT(*) AS PropertyCount
+FROM PROPERTIES
+GROUP BY Sq_Ft_Area;
+
+-- Query 4: Display the names of all Owners whose name starts with 'R'
+SELECT DISTINCT P.OwnerNo
+FROM PROPERTIES P
+JOIN CLIENTS C ON P.OwnerNo = C.ClientNo
+WHERE C.ClientName LIKE 'R%';
+
+-- Query 5: Create a view to show ClientName along with the Pno, Type, Address, and Rent of the property which he has rented
+CREATE VIEW ClientProperties AS
+SELECT C.ClientName, P.Pno, P.Type, P.Address, P.Rent
+FROM CLIENTS C
+JOIN RENTAL R ON C.ClientNo = R.ClientNo
+JOIN PROPERTIES P ON R.Pno = P.Pno
+WHERE R.FromDate <= SYSDATE AND R.ToDate >= SYSDATE;
+
+-- Query 6: Display the alphabetical list of Clients
+SELECT ClientName
+FROM CLIENTS
+ORDER BY ClientName;
+
+-- Query 7: Increase rent of Pno 1006 by 2000
+UPDATE PROPERTIES
+SET Rent = Rent + 2000
+WHERE Pno = 1006;
+
+-- Query 8: Delete record of Pno = 1007
+DELETE FROM PROPERTIES
+WHERE Pno = 1007;

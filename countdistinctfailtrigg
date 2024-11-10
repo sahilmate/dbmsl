@@ -1,0 +1,94 @@
+-- Creating the STUDENT table
+CREATE TABLE STUDENT (
+    Rno INT PRIMARY KEY,
+    Name VARCHAR2(50),
+    TotMarks INT,
+    Class VARCHAR2(20) CHECK (Class IN ('Distinction', 'FirstClass', 'HigherSecondClass', 'SecondClass', 'Fail'))
+);
+
+
+
+CREATE OR REPLACE FUNCTION Count_Student_Class
+RETURN VARCHAR2
+IS
+    distinction_count INT;
+    first_class_count INT;
+    higher_second_class_count INT;
+    second_class_count INT;
+    fail_count INT;
+BEGIN
+    -- Counting students in each class category
+    SELECT COUNT(*) INTO distinction_count
+    FROM STUDENT
+    WHERE TotMarks >= 75;
+
+    SELECT COUNT(*) INTO first_class_count
+    FROM STUDENT
+    WHERE TotMarks BETWEEN 60 AND 74;
+
+    SELECT COUNT(*) INTO higher_second_class_count
+    FROM STUDENT
+    WHERE TotMarks BETWEEN 50 AND 59;
+
+    SELECT COUNT(*) INTO second_class_count
+    FROM STUDENT
+    WHERE TotMarks BETWEEN 40 AND 49;
+
+    SELECT COUNT(*) INTO fail_count
+    FROM STUDENT
+    WHERE TotMarks < 40;
+
+    -- Returning a formatted result
+    RETURN 'Distinction: ' || distinction_count || ', ' ||
+           'First Class: ' || first_class_count || ', ' ||
+           'Higher Second Class: ' || higher_second_class_count || ', ' ||
+           'Second Class: ' || second_class_count || ', ' ||
+           'Fail: ' || fail_count;
+END;
+/
+
+SET SERVEROUTPUT ON;
+
+DECLARE
+    result VARCHAR2(500);
+BEGIN
+    result := Count_Student_Class();
+    DBMS_OUTPUT.PUT_LINE(result);
+END;
+/
+
+
+-- Creating the BOOKS table
+CREATE TABLE BOOKS (
+    BookID INT PRIMARY KEY,
+    BookName VARCHAR2(100),
+    Author VARCHAR2(50),
+    PublishedYear INT
+);
+
+-- Creating the BOOKS_LOG table
+CREATE TABLE BOOKS_LOG (
+    LogID INT PRIMARY KEY,
+    BookID INT,
+    BookName VARCHAR2(100),
+    Author VARCHAR2(50),
+    PublishedYear INT,
+    DeleteDate TIMESTAMP
+);
+
+
+
+CREATE OR REPLACE TRIGGER after_book_delete
+AFTER DELETE ON BOOKS
+FOR EACH ROW
+DECLARE
+BEGIN
+    -- Inserting the deleted record into the BOOKS_LOG table
+    INSERT INTO BOOKS_LOG (LogID, BookID, BookName, Author, PublishedYear, DeleteDate)
+    VALUES (BOOKS_LOG_SEQ.NEXTVAL, :OLD.BookID, :OLD.BookName, :OLD.Author, :OLD.PublishedYear, SYSDATE);
+END;
+/
+
+--Test
+DELETE FROM BOOKS WHERE BookID = 1;
+SELECT * FROM BOOKS_LOG;

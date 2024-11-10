@@ -1,0 +1,55 @@
+-- Create the STUDENT table
+CREATE TABLE STUDENT (
+    Rno NUMBER PRIMARY KEY,
+    Name VARCHAR2(50) NOT NULL,
+    TotMarks NUMBER(4) CHECK (TotMarks >= 0),
+    Class VARCHAR2(20)
+);
+
+-- Insert data into the STUDENT table
+INSERT INTO STUDENT (Rno, Name, TotMarks, Class) VALUES (1, 'John Doe', 1050, NULL);
+INSERT INTO STUDENT (Rno, Name, TotMarks, Class) VALUES (2, 'Jane Smith', 980, NULL);
+INSERT INTO STUDENT (Rno, Name, TotMarks, Class) VALUES (3, 'Robert Brown', 850, NULL);
+INSERT INTO STUDENT (Rno, Name, TotMarks, Class) VALUES (4, 'Emily Davis', 700, NULL);
+INSERT INTO STUDENT (Rno, Name, TotMarks, Class) VALUES (5, 'Michael Wilson', 550, NULL);
+
+-- Commit the data insertion
+COMMIT;
+
+-- Create the named procedure to update the class based on total marks
+CREATE OR REPLACE PROCEDURE UpdateStudentClass(p_Rno IN NUMBER) AS
+    v_TotMarks NUMBER;
+BEGIN
+    SELECT TotMarks INTO v_TotMarks
+    FROM STUDENT
+    WHERE Rno = p_Rno;
+
+    UPDATE STUDENT
+    SET Class = CASE
+                    WHEN v_TotMarks <= 1500 AND v_TotMarks >= 990 THEN 'Distinction'
+                    WHEN v_TotMarks <= 989 AND v_TotMarks >= 900 THEN 'First Class'
+                    WHEN v_TotMarks <= 899 AND v_TotMarks >= 825 THEN 'Higher Second Class'
+                    WHEN v_TotMarks <= 824 AND v_TotMarks >= 600 THEN 'Second Class'
+                    ELSE 'Fail'
+                END
+    WHERE Rno = p_Rno;
+
+    COMMIT;
+END;
+/
+
+DECLARE
+    p_Rno NUMBER := &Enter_Roll_No;  -- Prompt for roll number
+BEGIN
+    -- Call the procedure to update the class based on the roll number
+    UpdateStudentClass(p_Rno);
+
+    DBMS_OUTPUT.put_line('Class updated successfully for Roll No: ' || p_Rno);
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        DBMS_OUTPUT.put_line('No student found with Roll No: ' || p_Rno);
+END;
+/
+
+
+SELECT * FROM STUDENT ;

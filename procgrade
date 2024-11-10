@@ -1,0 +1,73 @@
+-- 1. Create the Stud_Marks table to store student marks
+CREATE TABLE Stud_Marks (
+    Roll NUMBER PRIMARY KEY,
+    Name VARCHAR2(100),
+    Total_marks NUMBER CHECK (Total_marks >= 0 AND Total_marks <= 1500)
+);
+
+-- 2. Create the Result table to store the categorized grades
+CREATE TABLE Result (
+    Roll NUMBER PRIMARY KEY,
+    Name VARCHAR2(100),
+    Class VARCHAR2(20)
+);
+
+-- 3. Insert sample data into Stud_Marks table
+INSERT INTO Stud_Marks (Roll, Name, Total_marks) VALUES (1, 'Alice', 1000);
+INSERT INTO Stud_Marks (Roll, Name, Total_marks) VALUES (2, 'Bob', 850);
+INSERT INTO Stud_Marks (Roll, Name, Total_marks) VALUES (3, 'Charlie', 750);
+INSERT INTO Stud_Marks (Roll, Name, Total_marks) VALUES (4, 'David', 500);
+INSERT INTO Stud_Marks (Roll, Name, Total_marks) VALUES (5, 'Eve', 1200);
+
+COMMIT;
+
+-- 4. Create the Proc_Grade procedure to categorize and insert student results
+CREATE OR REPLACE PROCEDURE Proc_Grade (roll_no IN NUMBER, marks IN NUMBER) IS
+    class VARCHAR2(20);
+BEGIN
+    IF marks >= 990 AND marks <= 1500 THEN
+        class := 'Distinction';
+    ELSIF marks >= 900 AND marks <= 989 THEN
+        class := 'First Class';
+    ELSIF marks >= 825 AND marks <= 899 THEN
+        class := 'Higher Second Class';
+    ELSE
+        class := 'Fail';
+    END IF;
+
+    -- Insert categorized result into Result table
+    INSERT INTO Result (Roll, Name, Class)
+    SELECT Roll, Name, class
+    FROM Stud_Marks
+    WHERE Roll = roll_no;
+
+    COMMIT;
+END;
+/
+
+-- 5. Anonymous block to call the procedure and handle exceptions
+SET SERVEROUTPUT ON;
+
+DECLARE
+    roll_no NUMBER;
+    marks NUMBER;
+BEGIN
+    -- Prompt user for roll number
+    roll_no := &roll;
+
+    -- Retrieve the total marks for the given roll number
+    SELECT Total_marks INTO marks
+    FROM Stud_Marks
+    WHERE Roll = roll_no;
+
+    -- Call the procedure to categorize grade
+    Proc_Grade(roll_no, marks);
+
+    DBMS_OUTPUT.put_line('Grade categorization completed for Roll number: ' || roll_no);
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        DBMS_OUTPUT.put_line('No student found for the given roll number');
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.put_line('An error occurred: ' || SQLERRM);
+END;
+/

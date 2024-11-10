@@ -1,0 +1,35 @@
+CREATE TABLE CUSTOMERR (
+    ID INT PRIMARY KEY,
+    Name VARCHAR2(50),
+    Age INT,
+    Address VARCHAR2(100),
+    Salary NUMBER
+);
+
+CREATE OR REPLACE TRIGGER salary_difference_trigger
+AFTER INSERT OR UPDATE OR DELETE
+ON CUSTOMERR
+FOR EACH ROW
+BEGIN
+  IF INSERTING THEN
+    DBMS_OUTPUT.PUT_LINE('Inserted Salary: ' || :NEW.Salary);
+  ELSIF UPDATING THEN
+    DBMS_OUTPUT.PUT_LINE('Salary changed from ' || :OLD.Salary || ' to ' || :NEW.Salary || 
+                         '. Difference: ' || (:NEW.Salary - :OLD.Salary));
+  ELSIF DELETING THEN
+    DBMS_OUTPUT.PUT_LINE('Deleted Salary: ' || :OLD.Salary);
+  END IF;
+END;
+/
+SET SERVEROUTPUT ON;
+INSERT INTO CUSTOMERR (ID, Name, Age, Address, Salary)
+VALUES (1, 'John Doe', 30, '123 Main St', 50000);
+
+-- Update a record to trigger the UPDATE part of the trigger
+UPDATE CUSTOMERR
+SET Salary = 60000
+WHERE ID = 1;
+
+-- Delete a record to trigger the DELETE part of the trigger
+DELETE FROM CUSTOMERR
+WHERE ID = 1;

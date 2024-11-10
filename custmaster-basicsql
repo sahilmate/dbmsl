@@ -1,0 +1,48 @@
+-- 1. Create the Cust_Master table with primary key constraint on Cust_no.
+CREATE TABLE Cust_Master (
+    Cust_no VARCHAR2(10) PRIMARY KEY,
+    Cust_name VARCHAR2(50),
+    Qty_Ordered NUMBER,
+    Order_date DATE,
+    Cust_addr VARCHAR2(100)
+);
+
+-- 2. Insert 10 records into the Cust_Master table with Order_date as specific date values.
+INSERT INTO Cust_Master VALUES ('C1001', 'Alice', 5, TO_DATE('2024-04-15', 'YYYY-MM-DD'), 'Mumbai');
+INSERT INTO Cust_Master VALUES ('C1002', 'David', 3, TO_DATE('2024-06-20', 'YYYY-MM-DD'), 'Delhi');
+INSERT INTO Cust_Master VALUES ('C1003', 'Marry', 7, TO_DATE('2024-07-10', 'YYYY-MM-DD'), 'Banglore');
+INSERT INTO Cust_Master VALUES ('C1004', 'Sandy', 4, TO_DATE('2024-08-18', 'YYYY-MM-DD'), 'Manglore');
+INSERT INTO Cust_Master VALUES ('C1005', 'Kamal', 2, TO_DATE('2024-09-25', 'YYYY-MM-DD'), 'Mumbai');
+INSERT INTO Cust_Master VALUES ('C1006', 'Sam', 6, TO_DATE('2024-10-30', 'YYYY-MM-DD'), 'Delhi');
+INSERT INTO Cust_Master VALUES ('C1007', 'Nayan', 9, TO_DATE('2024-11-05', 'YYYY-MM-DD'), 'Manglore');
+INSERT INTO Cust_Master VALUES ('C1008', 'Balraj', 8, TO_DATE('2024-12-12', 'YYYY-MM-DD'), 'Banglore');
+INSERT INTO Cust_Master VALUES ('C1009', 'Anil', 3, TO_DATE('2024-01-23', 'YYYY-MM-DD'), 'Mumbai');
+INSERT INTO Cust_Master VALUES ('C1010', 'Sarah', 5, TO_DATE('2024-02-14', 'YYYY-MM-DD'), 'Pune');
+
+-- 3. List names of customers having 'a' as the second letter in their name.
+SELECT Cust_name 
+FROM Cust_Master
+WHERE SUBSTR(Cust_name, 2, 1) = 'a';
+
+-- 4. List customers who stay in a city whose first letter is 'M'.
+SELECT Cust_name, Cust_addr 
+FROM Cust_Master
+WHERE SUBSTR(Cust_addr, 1, 1) = 'M';
+
+-- 5. Display orders from Customer no C1002, C1005, C1007, and C1008.
+SELECT * 
+FROM Cust_Master 
+WHERE Cust_no IN ('C1002', 'C1005', 'C1007', 'C1008');
+
+-- 6. List clients who stay in either 'Banglore' or 'Manglore'.
+SELECT Cust_name, Cust_addr 
+FROM Cust_Master 
+WHERE Cust_addr IN ('Banglore', 'Manglore');
+
+-- 7. Create a view called Customer_View consisting of Cust_no, Qty_Ordered, and Order_date.
+CREATE VIEW Customer_View AS
+SELECT Cust_no, Qty_Ordered, Order_date 
+FROM Cust_Master;
+
+-- Query to check the view
+SELECT * FROM Customer_View;

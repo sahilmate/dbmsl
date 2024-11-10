@@ -1,0 +1,227 @@
+-- Create Branch Table
+CREATE TABLE branch (
+    branch_name VARCHAR2(50) PRIMARY KEY,
+    branch_city VARCHAR2(50),
+    assets NUMBER CHECK (assets >= 0)
+);
+
+-- Create Account Table
+CREATE TABLE Account (
+    Acc_no INT PRIMARY KEY,
+    branch_name VARCHAR2(50) NOT NULL,
+    balance NUMBER CHECK (balance >= 0),
+    FOREIGN KEY (branch_name) REFERENCES branch(branch_name)
+);
+
+-- Create Customer Table
+CREATE TABLE customer (
+    cust_name VARCHAR2(50) PRIMARY KEY,
+    cust_street VARCHAR2(100),
+    cust_city VARCHAR2(50)
+);
+
+-- Create Depositor Table
+CREATE TABLE Depositor (
+    cust_name VARCHAR2(50),
+    acc_no INT,
+    PRIMARY KEY (cust_name, acc_no),
+    FOREIGN KEY (cust_name) REFERENCES customer(cust_name),
+    FOREIGN KEY (acc_no) REFERENCES Account(Acc_no)
+);
+
+-- Create Loan Table
+CREATE TABLE Loan (
+    loan_no INT PRIMARY KEY,
+    branch_name VARCHAR2(50),
+    amount NUMBER CHECK (amount >= 0),
+    FOREIGN KEY (branch_name) REFERENCES branch(branch_name)
+);
+
+-- Create Borrower Table
+CREATE TABLE Borrower (
+    cust_name VARCHAR2(50),
+    loan_no INT,
+    PRIMARY KEY (cust_name, loan_no),
+    FOREIGN KEY (cust_name) REFERENCES customer(cust_name),
+    FOREIGN KEY (loan_no) REFERENCES Loan(loan_no)
+);
+
+-- Insert data into branch table
+INSERT INTO branch (branch_name, branch_city, assets)
+VALUES ('Akurdi', 'Pune', 5000000);
+INSERT INTO branch (branch_name, branch_city, assets)
+VALUES ('Shivaji Nagar', 'Pune', 7000000);
+INSERT INTO branch (branch_name, branch_city, assets)
+VALUES ('Nigdi', 'Pune', 4500000);
+INSERT INTO branch (branch_name, branch_city, assets)
+VALUES ('Vashi', 'Mumbai', 10000000);
+INSERT INTO branch (branch_name, branch_city, assets)
+VALUES ('Andheri', 'Mumbai', 12000000);
+
+-- Insert data into Account table
+INSERT INTO Account (Acc_no, branch_name, balance)
+VALUES (1001, 'Akurdi', 15000);
+INSERT INTO Account (Acc_no, branch_name, balance)
+VALUES (1002, 'Shivaji Nagar', 20000);
+INSERT INTO Account (Acc_no, branch_name, balance)
+VALUES (1003, 'Nigdi', 10000);
+INSERT INTO Account (Acc_no, branch_name, balance)
+VALUES (1004, 'Vashi', 25000);
+INSERT INTO Account (Acc_no, branch_name, balance)
+VALUES (1005, 'Andheri', 30000);
+INSERT INTO Account (Acc_no, branch_name, balance)
+VALUES (1006, 'Akurdi', 12000);
+INSERT INTO Account (Acc_no, branch_name, balance)
+VALUES (1007, 'Vashi', 5000);
+
+-- Insert data into customer table
+INSERT INTO customer (cust_name, cust_street, cust_city)
+VALUES ('John Doe', '123 Main Street', 'Pune');
+INSERT INTO customer (cust_name, cust_street, cust_city)
+VALUES ('Jane Smith', '456 Elm Street', 'Mumbai');
+INSERT INTO customer (cust_name, cust_street, cust_city)
+VALUES ('Jim Brown', '789 Pine Street', 'Chennai');
+INSERT INTO customer (cust_name, cust_street, cust_city)
+VALUES ('Sara White', '101 Maple Ave', 'Delhi');
+INSERT INTO customer (cust_name, cust_street, cust_city)
+VALUES ('David Lee', '202 Oak St', 'Kolkata');
+INSERT INTO customer (cust_name, cust_street, cust_city)
+VALUES ('Maya Rao', '303 Birch Rd', 'Bangalore');
+INSERT INTO customer (cust_name, cust_street, cust_city)
+VALUES ('Ravi Kumar', '404 Cedar Ln', 'Hyderabad');
+
+-- Insert data into Depositor table
+INSERT INTO Depositor (cust_name, acc_no)
+VALUES ('John Doe', 1001);
+INSERT INTO Depositor (cust_name, acc_no)
+VALUES ('Jane Smith', 1002);
+INSERT INTO Depositor (cust_name, acc_no)
+VALUES ('Sara White', 1003);
+INSERT INTO Depositor (cust_name, acc_no)
+VALUES ('Maya Rao', 1004);
+INSERT INTO Depositor (cust_name, acc_no)
+VALUES ('Ravi Kumar', 1005);
+
+-- Insert data into Loan table
+INSERT INTO Loan (loan_no, branch_name, amount)
+VALUES (2001, 'Akurdi', 15000);
+INSERT INTO Loan (loan_no, branch_name, amount)
+VALUES (2002, 'Shivaji Nagar', 25000);
+INSERT INTO Loan (loan_no, branch_name, amount)
+VALUES (2003, 'Nigdi', 8000);
+INSERT INTO Loan (loan_no, branch_name, amount)
+VALUES (2004, 'Vashi', 5000);
+INSERT INTO Loan (loan_no, branch_name, amount)
+VALUES (2005, 'Andheri', 35000);
+INSERT INTO Loan (loan_no, branch_name, amount)
+VALUES (2006, 'Akurdi', 12000);
+
+-- Insert data into Borrower table
+INSERT INTO Borrower (cust_name, loan_no)
+VALUES ('John Doe', 2001);
+INSERT INTO Borrower (cust_name, loan_no)
+VALUES ('Sara White', 2002);
+INSERT INTO Borrower (cust_name, loan_no)
+VALUES ('David Lee', 2005);
+INSERT INTO Borrower (cust_name, loan_no)
+VALUES ('Maya Rao', 2006);
+
+
+-- Find the names of all branches in the loan relation.
+SELECT DISTINCT branch_name FROM Loan;
+
+--Find all loan numbers for loans made at 'Shivaji Nagar' Branch with loan amount > 12000.
+SELECT loan_no 
+FROM Loan
+WHERE branch_name = 'Shivaji Nagar' 
+AND amount > 12000;
+
+
+--Find all customers who have a loan from the bank. Find their names, loan_no and loan amount.
+SELECT customer.cust_name, Loan.loan_no, Loan.amount
+FROM customer
+JOIN Borrower ON customer.cust_name = Borrower.cust_name
+JOIN Loan ON Borrower.loan_no = Loan.loan_no;
+
+ --List all customers in alphabetical order who have a loan from the Akurdi branch
+SELECT customer.cust_name
+FROM customer
+JOIN Borrower ON customer.cust_name = Borrower.cust_name
+JOIN Loan ON Borrower.loan_no = Loan.loan_no
+WHERE Loan.branch_name = 'Akurdi'
+ORDER BY customer.cust_name;
+
+-- Find all customers who have an account or loan or both at the bank.
+SELECT DISTINCT customer.cust_name
+FROM customer
+LEFT JOIN Depositor ON customer.cust_name = Depositor.cust_name
+LEFT JOIN Borrower ON customer.cust_name = Borrower.cust_name;
+
+--Find all customers who have both an account and a loan at the bank.
+SELECT DISTINCT customer.cust_name
+FROM customer
+JOIN Depositor ON customer.cust_name = Depositor.cust_name
+JOIN Borrower ON customer.cust_name = Borrower.cust_name;
+
+--Find all customers who have an account but no loan at the bank.
+SELECT DISTINCT customer.cust_name
+FROM customer
+JOIN Depositor ON customer.cust_name = Depositor.cust_name
+LEFT JOIN Borrower ON customer.cust_name = Borrower.cust_name
+WHERE Borrower.cust_name IS NULL;
+
+--Find the average account balance at Akurdi branch.
+SELECT AVG(balance) AS avg_balance
+FROM Account
+WHERE branch_name = 'Akurdi';
+
+--Find the branches where average account balance > 12000.
+SELECT branch_name
+FROM Account
+GROUP BY branch_name
+HAVING AVG(balance) > 12000;
+
+--Find the number of tuples in the customer relation.
+SELECT COUNT(*) AS num_customers
+FROM customer;
+
+--Calculate total loan amount given by the bank.
+SELECT SUM(amount) AS total_loan_amount
+FROM Loan;
+
+--Delete all loans with loan amount between 1300 and 1500.
+DELETE FROM Loan
+WHERE amount BETWEEN 1300 AND 1500;
+
+--Delete all tuples at every branch located in Nigdi.
+DELETE FROM branch
+WHERE branch_city = 'Nigdi';
+
+--Create sequence roll_seq and use in student table for roll_no column.
+-- Step 1: Create the sequence for roll_no
+CREATE SEQUENCE roll_seq
+START WITH 1
+INCREMENT BY 1
+NOCACHE;
+
+-- Step 2: Create the student table (without the DEFAULT value for roll_no)
+CREATE TABLE student (
+    roll_no INT PRIMARY KEY,
+    student_name VARCHAR2(50),
+    age INT
+);
+
+-- Step 3: Create a trigger to assign the roll_no before insert
+CREATE OR REPLACE TRIGGER student_before_insert
+BEFORE INSERT ON student
+FOR EACH ROW
+BEGIN
+    SELECT roll_seq.NEXTVAL
+    INTO :NEW.roll_no
+    FROM dual;
+END;
+/
+
+
+
+
